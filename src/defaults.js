@@ -167,9 +167,9 @@ const defaults = {
   onCharAppended: (char, self) => { },
 
   /**
-   *  After a character has been removed.
-   * @param {*} char 
-   * @param {*} self 
+   * After a character has been removed.
+   * @param {*} char
+   * @param {*} self
    */
   onCharRemoved: (char, self) => { }
 };

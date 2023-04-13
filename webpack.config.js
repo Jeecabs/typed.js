@@ -1,5 +1,5 @@
-import webpack from 'webpack';
-import pkg from './package.json';
+const webpack = require('webpack');
+const pkg = require('./package.json');
 var banner = `
   ${pkg.name} - ${pkg.description}
   Author: ${pkg.author}
@@ -8,7 +8,7 @@ var banner = `
   License(s): ${pkg.license}
 `;
 
-export default {
+module.exports = {
   entry: {
     Typed: './src/typed.js'
   },
@@ -42,4 +42,5 @@ export default {
     ]
   },
   plugins: [new webpack.BannerPlugin(banner)]
+
 };
