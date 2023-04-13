@@ -230,8 +230,8 @@ export default class Typed {
  * @private
  */
   backspace(curString, curStrPos) {
-    // Exit when stopped
-    if (this.stop === true) {
+    // Exit when stopped or paused
+    if (this.stop === true || this.pause.status) {
       return;
     }
   
@@ -249,6 +249,24 @@ export default class Typed {
     } else {
       // Finished backspacing current string
       this.typingComplete = true;
+    }
+  
+    // If the typing is not complete, continue with the backspace or proceed to the next string
+    if (!this.typingComplete) {
+      this.backspace(curString, curStrPos);
+    } else {
+      this.arrayPos++;
+  
+      if (this.arrayPos === this.strings.length) {
+        this.complete();
+        return;
+      }
+  
+      if (this.fadeOut) {
+        this.initFadeOut();
+      } else {
+        this.typewrite(this.strings[this.sequence[this.arrayPos]], curStrPos);
+      }
     }
   }
 
