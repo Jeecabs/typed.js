@@ -98,7 +98,7 @@ export default class Typed {
   }
 
   /**
-   * @returns 
+   * @returns
    */
   animateLoop() {
     if (this.pause.status) {
@@ -119,8 +119,6 @@ export default class Typed {
     }
     this.animationFrame = requestAnimationFrame(() => this.animateLoop());
   }
-
-
 
   /**
    * Called for each character typed
@@ -281,7 +279,6 @@ export default class Typed {
       }
     }
   }
-
 
   /**
    * Full animation is complete
