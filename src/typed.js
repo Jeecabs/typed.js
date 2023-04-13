@@ -11,6 +11,8 @@ export default class Typed {
   constructor(elementId, options) {
     // Initialize it up
     initializer.load(this, options, elementId);
+    // Set typeSpeed
+    this.typeSpeed = this.options.typeSpeed || 50; // or any other default value
     // All systems go!
     this.begin();
   }
@@ -99,7 +101,7 @@ export default class Typed {
    * @returns 
    */
   animateLoop() {
-    if (this.isPaused) {
+    if (this.pause.status) {
       this.animationFrame = requestAnimationFrame(() => this.animateLoop());
       return;
     }
@@ -128,18 +130,18 @@ export default class Typed {
    */
   typewrite(curString, curStrPos) {
     // Exit when stopped
-    if (this.stop === true) {
+    if (this.pause.status) {
       return;
     }
-  
+
     // Set the animation frame timestamp for the first time
     if (!this.lastFrameTime) {
       this.lastFrameTime = Date.now();
     }
-  
+
     // Looping through strings
     const humanize = this.humanizer(this.typeSpeed);
-  
+
     // Make sure the current string position is within the current string
     if (curStrPos < curString.length) {
       // Check if smartBackspace is enabled
@@ -150,7 +152,7 @@ export default class Typed {
           return;
         }
       }
-  
+
       if (curString.substr(curStrPos, 1) === '^') {
         const skip = 1; // Skip at least the ^ char
         if (/^\^\d+/.test(curString.substr(curStrPos, 3))) {
@@ -160,23 +162,28 @@ export default class Typed {
         }
         curStrPos += skip;
       }
-  
+
       // Continue typing
       this.el.innerHTML = htmlParser.typeHtmlChars(curString.substr(0, curStrPos), this);
       curStrPos++;
       this.strPos = curStrPos;
+
+      // Call the keepTyping method after the humanized delay
+      setTimeout(() => {
+        this.keepTyping(curString, curStrPos, 1);
+      }, humanize);
     } else {
       // Finished typing current string
       this.arrayPos++;
-  
+
       if (this.arrayPos === this.strings.length) {
         this.complete();
         return;
       }
-  
+
       this.typingComplete = true;
     }
-    if(this.typingComplete){
+    if (this.typingComplete) {
       this.doneTyping(curString, curStrPos)
     }
   }
@@ -234,12 +241,12 @@ export default class Typed {
     if (this.stop === true || this.pause.status) {
       return;
     }
-  
+
     // Set the animation frame timestamp for the first time
     if (!this.lastFrameTime) {
       this.lastFrameTime = Date.now();
     }
-  
+
     // Loop through the string, backspacing to the beginning
     if (curStrPos > 0) {
       // Replace text with the substring up to the new string position
@@ -250,18 +257,18 @@ export default class Typed {
       // Finished backspacing current string
       this.typingComplete = true;
     }
-  
+
     // If the typing is not complete, continue with the backspace or proceed to the next string
     if (!this.typingComplete) {
       this.backspace(curString, curStrPos);
     } else {
       this.arrayPos++;
-  
+
       if (this.arrayPos === this.strings.length) {
         this.complete();
         return;
       }
-  
+
       if (this.fadeOut) {
         this.initFadeOut();
       } else {
