@@ -243,7 +243,7 @@ export default class Typed {
   backspace(curString, curStrPos) {
     // Exit when stopped or paused
     if (this.stop === true || this.pause.status) {
-      this.setPauseStatus(curString, curStrPos, true);
+      this.setPauseStatus(curString, curStrPos, false);
       return;
     }
 
