@@ -131,6 +131,7 @@ export default class Typed {
   typewrite(curString, curStrPos) {
     // Exit when stopped
     if (this.pause.status) {
+      this.setPauseStatus(curString, curStrPos, true);
       return;
     }
 
@@ -242,6 +243,7 @@ export default class Typed {
   backspace(curString, curStrPos) {
     // Exit when stopped or paused
     if (this.stop === true || this.pause.status) {
+      this.setPauseStatus(curString, curStrPos, true);
       return;
     }
 
