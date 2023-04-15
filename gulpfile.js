@@ -1,4 +1,4 @@
-require('babel/register');
+require('@babel/register');
 const gulp = require('gulp');
 const webpack = require('webpack-stream');
 const sourcemaps = require('gulp-sourcemaps');
@@ -9,19 +9,17 @@ const gulpDocumentation = require('gulp-documentation');
 const eslint = require('gulp-eslint');
 const server = require('gulp-express');
 
-gulp.task('lint', () => {
+function lint() {
   return (
     gulp
       .src('src/*.js')
-      // default: use local linting config
       .pipe(eslint())
-      // format ESLint results and print them to the console
       .pipe(eslint.format())
       .pipe(eslint.failAfterError())
   );
-});
+}
 
-gulp.task('build', () => {
+function build() {
   return gulp
     .src('src/*.js')
     .pipe(webpack(require('./webpack.config.js')))
@@ -41,55 +39,59 @@ gulp.task('build', () => {
     .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest('lib/'))
     .pipe(livereload());
-});
+}
 
-gulp.task('md-docs', () => {
+function mdDocs() {
   return gulp
     .src('./src/*.js')
     .pipe(gulpDocumentation('md'))
     .pipe(gulp.dest('docs'));
-});
+}
 
-gulp.task('html-docs', () => {
+function htmlDocs() {
   return gulp
     .src('./src/*.js')
     .pipe(
-      gulpDocumentation('html'),
-      {},
-      {
+      gulpDocumentation('html', {}, {
         name: 'Typed.js Docs',
         version: '2.0.12'
-      }
+      })
     )
     .pipe(gulp.dest('docs'));
-});
+}
 
-gulp.task('server', function() {
-  // Start the server at the beginning of the task
+function serve() {
   server.run(['app.js']);
-  // Restart the server when file changes
   gulp.watch(['docs/**/*.html'], server.notify);
-  gulp.watch(['docs/styles/**/*.scss'], ['styles:scss']);
-  //gulp.watch(['{.tmp,app}/styles/**/*.css'], ['styles:css', server.notify]);
-  //Event object won't pass down to gulp.watch's callback if there's more than one of them.
-  //So the correct way to use server.notify is as following:
-  gulp.watch(['{.tmp,docs}/styles/**/*.css'], function(event) {
-    gulp.run('styles:css');
-    server.notify(event);
-    //pipe support is added for server.notify since v0.1.5,
-    //see https://github.com/gimm/gulp-express#servernotifyevent
-  });
-
-  gulp.watch(['docs/scripts/**/*.js'], ['jshint']);
+  gulp.watch(['docs/styles/**/*.scss'], stylesScss);
+  gulp.watch(['{.tmp,docs}/styles/**/*.css'], stylesCss);
+  gulp.watch(['docs/scripts/**/*.js'], jshint);
   gulp.watch(['docs/images/**/*'], server.notify);
-});
+}
 
-gulp.task('serve', ['watch', 'server']);
+function stylesScss() {
+  // Add your styles:scss implementation here
+}
 
-// Watch Task
-gulp.task('watch', () => {
+function stylesCss() {
+  // Add your styles:css implementation here
+}
+
+function jshint() {
+  // Add your jshint implementation here
+}
+
+function watch() {
   livereload({ start: true });
-  gulp.watch('src/*.js', ['md-docs', 'html-docs', 'default']);
-});
+  gulp.watch('src/*.js', gulp.series(mdDocs, htmlDocs, defaultTask));
+}
 
-gulp.task('default', ['lint', 'build']);
+const defaultTask = gulp.series(lint, build);
+
+exports.lint = lint;
+exports.build = build;
+exports.mdDocs = mdDocs;
+exports.htmlDocs = htmlDocs;
+exports.serve = gulp.series(watch, serve);
+exports.watch = watch;
+exports.default = defaultTask;

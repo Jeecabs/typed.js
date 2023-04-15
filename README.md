@@ -1,9 +1,19 @@
 # Intention of this fork
 
-This fork strictly exists to replicate the solution for:
+This fork was originally made to replicate the solution for:
 https://stackoverflow.com/questions/49291904/play-sound-at-each-char-with-typedjs
 
-Where two callbacks `onCharAppended` and `onCharRemoved` are exposed for when each character is typed and removed respectively. This allows for playing a sound or triggering other events on each character typed or removed.
+However the opportunity for additional improvements was too good to pass up.
+
+**New Callbacks added in this fork:**
+
+- `onCharAppended`: Triggered after a character has been appended.
+- `onCharRemoved`: Triggered after a character has been removed.
+
+**New Changes in this fork:**
+
+- Implemented `requestAnimationFrame` for better performance
+
 
 # Original Repo's Readme
 
