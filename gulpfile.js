@@ -13,7 +13,7 @@ function lint() {
   return (
     gulp
       .src('src/*.js')
-      .pipe(eslint())
+      .pipe(eslint({ fix: true }))
       .pipe(eslint.format())
       .pipe(eslint.failAfterError())
   );
