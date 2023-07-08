@@ -52,6 +52,7 @@
     "webpack-stream": "^2.1.0"
   },
   "dependencies": {
-    "@babel/register": "^7.21.0"
+    "@babel/register": "^7.21.0",
+    "typescript": "^5.1.6"
   }
 }
