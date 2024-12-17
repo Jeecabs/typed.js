@@ -1,17 +1,15 @@
+import defaults from './defaults.js';
 import { initializer } from './initializer.js';
 import { htmlParser } from './html-parser.js';
 
 /**
- * Welcome to Typed.js!
- * @param {string} elementId HTML element ID _OR_ HTML element
- * @param {object} options options object
- * @returns {object} a new Typed object
+ * Typed class: handles typing and backspacing animations
  */
 export default class Typed {
   constructor(elementId, options) {
-    // Initialize it up
+    // Initialize configuration and DOM references
     initializer.load(this, options, elementId);
-    // All systems go!
+    // Start the typing process
     this.begin();
   }
 
@@ -32,7 +30,7 @@ export default class Typed {
     if (this.pause.status) return;
     this.toggleBlinking(true);
     this.pause.status = true;
-    this.options.onStop(this.arrayPos, this);
+    this.options.onStop && this.options.onStop(this.arrayPos, this);
   }
 
   /**
@@ -48,7 +46,7 @@ export default class Typed {
     } else {
       this.backspace(this.pause.curString, this.pause.curStrPos);
     }
-    this.options.onStart(this.arrayPos, this);
+    this.options.onStart && this.options.onStart(this.arrayPos, this);
   }
 
   /**
@@ -57,7 +55,7 @@ export default class Typed {
    */
   destroy() {
     this.reset(false);
-    this.options.onDestroy(this);
+    this.options.onDestroy && this.options.onDestroy(this);
   }
 
   /**
@@ -66,7 +64,7 @@ export default class Typed {
    * @public
    */
   reset(restart = true) {
-    clearInterval(this.timeout);
+    clearTimeout(this.timeout);
     this.replaceText('');
     if (this.cursor && this.cursor.parentNode) {
       this.cursor.parentNode.removeChild(this.cursor);
@@ -77,7 +75,7 @@ export default class Typed {
     this.curLoop = 0;
     if (restart) {
       this.insertCursor();
-      this.options.onReset(this);
+      this.options.onReset && this.options.onReset(this);
       this.begin();
     }
   }
@@ -87,14 +85,12 @@ export default class Typed {
    * @private
    */
   begin() {
-    this.options.onBegin(this);
+    this.options.onBegin && this.options.onBegin(this);
     this.typingComplete = false;
-    this.shuffleStringsIfNeeded(this);
+    this.shuffleStringsIfNeeded();
     this.insertCursor();
     if (this.bindInputFocusEvents) this.bindFocusEvents();
     this.timeout = setTimeout(() => {
-      // If the strPos is 0, we're starting from the beginning of a string
-      // else, we're starting with a previous string that needs to be backspaced first
       if (this.strPos === 0) {
         this.typewrite(this.strings[this.sequence[this.arrayPos]], this.strPos);
       } else {
@@ -104,9 +100,9 @@ export default class Typed {
   }
 
   /**
-   * Called for each character typed
-   * @param {string} curString the current string in the strings array
-   * @param {number} curStrPos the current position in the curString
+   * Typed each character
+   * @param {string} curString current string
+   * @param {number} curStrPos current character index
    * @private
    */
   typewrite(curString, curStrPos) {
@@ -118,114 +114,83 @@ export default class Typed {
     const humanize = this.humanizer(this.typeSpeed);
     let numChars = 1;
 
-    if (this.pause.status === true) {
+    if (this.pause.status) {
       this.setPauseStatus(curString, curStrPos, true);
       return;
     }
 
-    // contain typing function in a timeout humanize'd delay
     this.timeout = setTimeout(() => {
-      // skip over any HTML chars
       curStrPos = htmlParser.typeHtmlChars(curString, curStrPos, this);
 
       let pauseTime = 0;
       let substr = curString.substring(curStrPos);
-      // check for an escape character before a pause value
-      // format: \^\d+ .. eg: ^1000 .. should be able to print the ^ too using ^^
-      // single ^ are removed from string
+      // Handle ^ character for pauses
       if (substr.charAt(0) === '^') {
-        if (/^\^\d+/.test(substr)) {
-          let skip = 1; // skip at least 1
-          substr = /\d+/.exec(substr)[0];
-          skip += substr.length;
-          pauseTime = parseInt(substr);
+        const match = /^\^\d+/.exec(substr);
+        if (match) {
+          const skipCount = 1 + match[0].slice(1).length;
+          pauseTime = parseInt(match[0].slice(1), 10);
           this.temporaryPause = true;
-          this.options.onTypingPaused(this.arrayPos, this);
-          // strip out the escape character and pause value so they're not printed
-          curString =
-            curString.substring(0, curStrPos) +
-            curString.substring(curStrPos + skip);
+          this.options.onTypingPaused && this.options.onTypingPaused(this.arrayPos, this);
+          curString = curString.substring(0, curStrPos) + curString.substring(curStrPos + skipCount);
           this.toggleBlinking(true);
         }
       }
 
-      // check for skip characters formatted as
-      // "this is a `string to print NOW` ..."
+      // Handle ` backticks for instant strings
       if (substr.charAt(0) === '`') {
         while (curString.substring(curStrPos + numChars).charAt(0) !== '`') {
           numChars++;
           if (curStrPos + numChars > curString.length) break;
         }
-        // strip out the escape characters and append all the string in between
         const stringBeforeSkip = curString.substring(0, curStrPos);
-        const stringSkipped = curString.substring(
-          stringBeforeSkip.length + 1,
-          curStrPos + numChars
-        );
+        const stringSkipped = curString.substring(stringBeforeSkip.length + 1, curStrPos + numChars);
         const stringAfterSkip = curString.substring(curStrPos + numChars + 1);
         curString = stringBeforeSkip + stringSkipped + stringAfterSkip;
         numChars--;
       }
 
-      // timeout for any pause after a character
+      // After character pause
       this.timeout = setTimeout(() => {
-        // Accounts for blinking while paused
         this.toggleBlinking(false);
-
-        // We're done with this sentence!
         if (curStrPos >= curString.length) {
           this.doneTyping(curString, curStrPos);
         } else {
           this.keepTyping(curString, curStrPos, numChars);
         }
-        // end of character pause
         if (this.temporaryPause) {
           this.temporaryPause = false;
-          this.options.onTypingResumed(this.arrayPos, this);
+          this.options.onTypingResumed && this.options.onTypingResumed(this.arrayPos, this);
         }
       }, pauseTime);
-
-      // humanized value for typing
     }, humanize);
   }
 
   /**
-   * Continue to the next string & begin typing
-   * @param {string} curString the current string in the strings array
-   * @param {number} curStrPos the current position in the curString
+   * Continue typing the current string
    * @private
    */
   keepTyping(curString, curStrPos, numChars) {
-    // call before functions if applicable
     if (curStrPos === 0) {
       this.toggleBlinking(false);
-      this.options.preStringTyped(this.arrayPos, this);
+      this.options.preStringTyped && this.options.preStringTyped(this.arrayPos, this);
     }
-    // start typing each new char into existing string
-    // curString: arg, this.el.html: original text inside element
     curStrPos += numChars;
     const nextString = curString.substring(0, curStrPos);
     this.replaceText(nextString);
-    // loop the function
     this.typewrite(curString, curStrPos);
   }
 
   /**
-   * We're done typing the current string
-   * @param {string} curString the current string in the strings array
-   * @param {number} curStrPos the current position in the curString
+   * Invoked when finished typing the current string
    * @private
    */
   doneTyping(curString, curStrPos) {
-    // fires callback function
-    this.options.onStringTyped(this.arrayPos, this);
+    this.options.onStringTyped && this.options.onStringTyped(this.arrayPos, this);
     this.toggleBlinking(true);
-    // is this the final string
     if (this.arrayPos === this.strings.length - 1) {
-      // callback that occurs on the last typed string
       this.complete();
-      // quit if we wont loop back
-      if (this.loop === false || this.curLoop === this.loopCount) {
+      if (!this.loop || this.curLoop === this.loopCount) {
         return;
       }
     }
@@ -235,13 +200,11 @@ export default class Typed {
   }
 
   /**
-   * Backspaces 1 character at a time
-   * @param {string} curString the current string in the strings array
-   * @param {number} curStrPos the current position in the curString
+   * Backspace characters
    * @private
    */
   backspace(curString, curStrPos) {
-    if (this.pause.status === true) {
+    if (this.pause.status) {
       this.setPauseStatus(curString, curStrPos, false);
       return;
     }
@@ -252,55 +215,45 @@ export default class Typed {
 
     this.timeout = setTimeout(() => {
       curStrPos = htmlParser.backSpaceHtmlChars(curString, curStrPos, this);
-      // replace text with base text + typed characters
       const curStringAtPosition = curString.substring(0, curStrPos);
       this.replaceText(curStringAtPosition);
 
-      // if smartBack is enabled
       if (this.smartBackspace) {
-        // the remaining part of the current string is equal of the same part of the new string
-        let nextString = this.strings[this.arrayPos + 1];
-        if (
-          nextString &&
-          curStringAtPosition === nextString.substring(0, curStrPos)
-        ) {
+        const nextString = this.strings[this.arrayPos + 1];
+        if (nextString && curStringAtPosition === nextString.substring(0, curStrPos)) {
           this.stopNum = curStrPos;
         } else {
           this.stopNum = 0;
         }
       }
 
-      // if the number (id of character in current string) is
-      // less than the stop number, keep going
       if (curStrPos > this.stopNum) {
-        // subtract characters one by one
         curStrPos--;
-        // loop the function
         this.backspace(curString, curStrPos);
       } else if (curStrPos <= this.stopNum) {
-        // if the stop number has been reached, increase
-        // array position to next string
         this.arrayPos++;
-        // When looping, begin at the beginning after backspace complete
         if (this.arrayPos === this.strings.length) {
           this.arrayPos = 0;
-          this.options.onLastStringBackspaced();
+          this.options.onLastStringBackspaced && this.options.onLastStringBackspaced();
           this.shuffleStringsIfNeeded();
           this.begin();
         } else {
-          this.typewrite(this.strings[this.sequence[this.arrayPos]], curStrPos);
+          // Ensure sequence index is valid
+          const nextIndex = this.sequence[this.arrayPos];
+          if (typeof nextIndex !== 'undefined') {
+            this.typewrite(this.strings[nextIndex], curStrPos);
+          }
         }
       }
-      // humanized value for typing
     }, humanize);
   }
 
   /**
-   * Full animation is complete
+   * Typing complete
    * @private
    */
   complete() {
-    this.options.onComplete(this);
+    this.options.onComplete && this.options.onComplete(this);
     if (this.loop) {
       this.curLoop++;
     } else {
@@ -309,10 +262,7 @@ export default class Typed {
   }
 
   /**
-   * Has the typing been stopped
-   * @param {string} curString the current string in the strings array
-   * @param {number} curStrPos the current position in the curString
-   * @param {boolean} isTyping
+   * Set pause status
    * @private
    */
   setPauseStatus(curString, curStrPos, isTyping) {
@@ -322,13 +272,11 @@ export default class Typed {
   }
 
   /**
-   * Toggle the blinking cursor
-   * @param {boolean} isBlinking
+   * Toggle blinking cursor
    * @private
    */
   toggleBlinking(isBlinking) {
     if (!this.cursor) return;
-    // if in paused state, don't toggle blinking a 2nd time
     if (this.pause.status) return;
     if (this.cursorBlinking === isBlinking) return;
     this.cursorBlinking = isBlinking;
@@ -340,8 +288,7 @@ export default class Typed {
   }
 
   /**
-   * Speed in MS to type
-   * @param {number} speed
+   * Humanize typing speed
    * @private
    */
   humanizer(speed) {
@@ -349,7 +296,7 @@ export default class Typed {
   }
 
   /**
-   * Shuffle the sequence of the strings array
+   * Shuffle strings if needed
    * @private
    */
   shuffleStringsIfNeeded() {
@@ -358,17 +305,15 @@ export default class Typed {
   }
 
   /**
-   * Adds a CSS class to fade out current string
+   * Fade out animation
    * @private
    */
   initFadeOut() {
-    this.el.className += ` ${this.fadeOutClass}`;
-    if (this.cursor) this.cursor.className += ` ${this.fadeOutClass}`;
+    this.el.classList.add(this.fadeOutClass);
+    if (this.cursor) this.cursor.classList.add(this.fadeOutClass);
     return setTimeout(() => {
       this.arrayPos++;
       this.replaceText('');
-
-      // Resets current string if end of loop reached
       if (this.strings.length > this.arrayPos) {
         this.typewrite(this.strings[this.sequence[this.arrayPos]], 0);
       } else {
@@ -379,9 +324,7 @@ export default class Typed {
   }
 
   /**
-   * Replaces current text in the HTML element
-   * depending on element type
-   * @param {string} str
+   * Replace text in element
    * @private
    */
   replaceText(str) {
@@ -399,16 +342,15 @@ export default class Typed {
   }
 
   /**
-   * If using input elements, bind focus in order to
-   * start and stop the animation
+   * Bind focus events for input elements
    * @private
    */
   bindFocusEvents() {
     if (!this.isInput) return;
-    this.el.addEventListener('focus', (e) => {
+    this.el.addEventListener('focus', () => {
       this.stop();
     });
-    this.el.addEventListener('blur', (e) => {
+    this.el.addEventListener('blur', () => {
       if (this.el.value && this.el.value.length !== 0) {
         return;
       }
@@ -417,7 +359,7 @@ export default class Typed {
   }
 
   /**
-   * On init, insert the cursor element
+   * Insert the cursor element
    * @private
    */
   insertCursor() {
@@ -427,7 +369,8 @@ export default class Typed {
     this.cursor.className = 'typed-cursor';
     this.cursor.setAttribute('aria-hidden', true);
     this.cursor.innerHTML = this.cursorChar;
-    this.el.parentNode &&
+    if (this.el.parentNode) {
       this.el.parentNode.insertBefore(this.cursor, this.el.nextSibling);
+    }
   }
 }

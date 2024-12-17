@@ -1,76 +1,41 @@
 import defaults from './defaults.js';
-/**
- * Initialize the Typed object
- */
 
-export default class Initializer {
+class Initializer {
   /**
-   * Load up defaults & options on the Typed instance
+   * Load defaults & options on the Typed instance
    * @param {Typed} self instance of Typed
    * @param {object} options options object
-   * @param {string} elementId HTML element ID _OR_ instance of HTML element
+   * @param {string|HTMLElement} elementId HTML element or selector
    * @private
    */
-
   load(self, options, elementId) {
-    // chosen element to manipulate text
-    if (typeof elementId === 'string') {
-      self.el = document.querySelector(elementId);
-    } else {
-      self.el = elementId;
-    }
+    self.el = (typeof elementId === 'string') 
+      ? document.querySelector(elementId) 
+      : elementId;
 
     self.options = { ...defaults, ...options };
 
-    // attribute to type into
     self.isInput = self.el.tagName.toLowerCase() === 'input';
     self.attr = self.options.attr;
     self.bindInputFocusEvents = self.options.bindInputFocusEvents;
-
-    // show cursor
     self.showCursor = self.isInput ? false : self.options.showCursor;
-
-    // custom cursor
     self.cursorChar = self.options.cursorChar;
-
-    // Is the cursor blinking
     self.cursorBlinking = true;
-
-    // text content of element
-    self.elContent = self.attr
-      ? self.el.getAttribute(self.attr)
+    self.elContent = self.attr 
+      ? self.el.getAttribute(self.attr) 
       : self.el.textContent;
-
-    // html or plain text
     self.contentType = self.options.contentType;
-
-    // typing speed
     self.typeSpeed = self.options.typeSpeed;
-
-    // add a delay before typing starts
     self.startDelay = self.options.startDelay;
-
-    // backspacing speed
     self.backSpeed = self.options.backSpeed;
-
-    // only backspace what doesn't match the previous string
     self.smartBackspace = self.options.smartBackspace;
-
-    // amount of time to wait before backspacing
     self.backDelay = self.options.backDelay;
-
-    // Fade out instead of backspace
     self.fadeOut = self.options.fadeOut;
     self.fadeOutClass = self.options.fadeOutClass;
     self.fadeOutDelay = self.options.fadeOutDelay;
-
-    // variable to check whether typing is currently paused
     self.isPaused = false;
-
-    // input strings of text
     self.strings = self.options.strings.map((s) => s.trim());
 
-    // div containing strings
     if (typeof self.options.stringsElement === 'string') {
       self.stringsElement = document.querySelector(self.options.stringsElement);
     } else {
@@ -80,34 +45,19 @@ export default class Initializer {
     if (self.stringsElement) {
       self.strings = [];
       self.stringsElement.style.display = 'none';
-      const strings = Array.prototype.slice.apply(self.stringsElement.children);
-      const stringsLength = strings.length;
-
-      if (stringsLength) {
-        for (let i = 0; i < stringsLength; i += 1) {
-          const stringEl = strings[i];
-          self.strings.push(stringEl.innerHTML.trim());
-        }
+      const strings = Array.from(self.stringsElement.children);
+      for (let i = 0; i < strings.length; i++) {
+        self.strings.push(strings[i].innerHTML.trim());
       }
     }
 
-    // character number position of current string
     self.strPos = 0;
-
-    // current array position
     self.arrayPos = 0;
-
-    // index of string to stop backspacing on
     self.stopNum = 0;
-
-    // Looping logic
     self.loop = self.options.loop;
     self.loopCount = self.options.loopCount;
     self.curLoop = 0;
-
-    // shuffle the strings
     self.shuffle = self.options.shuffle;
-    // the order of strings
     self.sequence = [];
 
     self.pause = {
@@ -117,17 +67,14 @@ export default class Initializer {
       curStrPos: 0
     };
 
-    // When the typing is complete (when not looped)
     self.typingComplete = false;
 
     // Set the order in which the strings are typed
-    for (let i in self.strings) {
+    for (let i = 0; i < self.strings.length; i++) {
       self.sequence[i] = i;
     }
 
-    // If there is some text in the element
     self.currentElContent = this.getCurrentElContent(self);
-
     self.autoInsertCss = self.options.autoInsertCss;
 
     this.appendAnimationCss(self);
@@ -149,58 +96,45 @@ export default class Initializer {
 
   appendAnimationCss(self) {
     const cssDataName = 'data-typed-js-css';
-    if (!self.autoInsertCss) {
-      return;
-    }
-    if (!self.showCursor && !self.fadeOut) {
-      return;
-    }
-    if (document.querySelector(`[${cssDataName}]`)) {
-      return;
-    }
+    if (!self.autoInsertCss) return;
+    if (!self.showCursor && !self.fadeOut) return;
+    if (document.querySelector(`[${cssDataName}]`)) return;
 
     let css = document.createElement('style');
     css.type = 'text/css';
-    css.setAttribute(cssDataName, true);
+    css.setAttribute(cssDataName, 'true');
 
     let innerCss = '';
     if (self.showCursor) {
       innerCss += `
-        .typed-cursor{
+        .typed-cursor {
           opacity: 1;
         }
-        .typed-cursor.typed-cursor--blink{
+        .typed-cursor.typed-cursor--blink {
           animation: typedjsBlink 0.7s infinite;
-          -webkit-animation: typedjsBlink 0.7s infinite;
-                  animation: typedjsBlink 0.7s infinite;
         }
-        @keyframes typedjsBlink{
+        @keyframes typedjsBlink {
           50% { opacity: 0.0; }
-        }
-        @-webkit-keyframes typedjsBlink{
-          0% { opacity: 1; }
-          50% { opacity: 0.0; }
-          100% { opacity: 1; }
         }
       `;
     }
     if (self.fadeOut) {
       innerCss += `
-        .typed-fade-out{
+        .typed-fade-out {
           opacity: 0;
           transition: opacity .25s;
         }
-        .typed-cursor.typed-cursor--blink.typed-fade-out{
-          -webkit-animation: 0;
-          animation: 0;
+        .typed-cursor.typed-cursor--blink.typed-fade-out {
+          animation: none;
         }
       `;
     }
-    if (css.length === 0) {
-      return;
+
+    // Only append if there's something to insert
+    if (innerCss.trim().length > 0) {
+      css.innerHTML = innerCss;
+      document.body.appendChild(css);
     }
-    css.innerHTML = innerCss;
-    document.body.appendChild(css);
   }
 }
 
