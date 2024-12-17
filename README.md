@@ -1,21 +1,4 @@
-# Intention of this fork
-
-This fork was originally made to replicate the solution for:
-https://stackoverflow.com/questions/49291904/play-sound-at-each-char-with-typedjs
-
-However the opportunity for additional improvements was too good to pass up.
-
-**New Callbacks added in this fork:**
-
-- `onCharAppended`: Triggered after a character has been appended.
-- `onCharRemoved`: Triggered after a character has been removed.
-
-**New Changes in this fork:**
-
-- Implemented `requestAnimationFrame` for better performance
-
-
-# Original Repo's Readme
+# Typed.js (Fork)
 
 [![Build Status](https://travis-ci.org/mattboldt/typed.js.svg?branch=typed-2.0)](https://travis-ci.org/mattboldt/typed.js)
 [![Code Climate](https://codeclimate.com/github/mattboldt/typed.js/badges/gpa.svg)](https://codeclimate.com/github/mattboldt/typed.js)
@@ -25,340 +8,199 @@ However the opportunity for additional improvements was too good to pass up.
 
 <img src="https://raw.githubusercontent.com/mattboldt/typed.js/master/logo-cropped.png" width="450px" title="Typed.js" />
 
-### [Live Demo](http://www.mattboldt.com/demos/typed-js/) | [View All Demos](http://mattboldt.github.io/typed.js/) | [View Full Docs](http://mattboldt.github.io/typed.js/docs) | [mattboldt.com](http://www.mattboldt.com)
+### [Live Demo](http://www.mattboldt.com/demos/typed-js/) | [View Original Demos](http://mattboldt.github.io/typed.js/) | [Original Docs](http://mattboldt.github.io/typed.js/docs) | [mattboldt.com](http://www.mattboldt.com)
 
-Typed.js is a library that types. Enter in any string, and watch it type at the speed you've set, backspace what it's typed, and begin a new sentence for however many strings you've set.
+## Intention of this Fork
+
+This fork was initially created to replicate the solution discussed here:
+
+[Play sound at each char with typed.js on StackOverflow](https://stackoverflow.com/questions/49291904/play-sound-at-each-char-with-typedjs)
+
+However, after reviewing the original code, the opportunity for additional improvements was too good to pass up.
+
+**New Improvements in this Fork:**
+
+- Implemented `requestAnimationFrame` for smoother and more performant updates instead of relying solely on `setTimeout`.
+- Introduced a more modular architecture, making the code easier to maintain and extend.
+- Added new callbacks for more granular control and event handling.
+
+**New Callbacks Added:**
+
+- **`onCharAppended`**: Triggered after a character has been appended to the typed element.
+- **`onCharRemoved`**: Triggered after a character has been removed from the typed element.
+
+With these new callbacks, you can implement custom behaviors at each character addition or removal event (e.g., playing a sound).
 
 ---
 
 ## Installation
 
-#### Choose One
+You can still install this fork as you would the original Typed.js:
 
-```
+```bash
 npm install typed.js
-yarn add typed.js
-bower install typed.js
 ```
 
-#### CDN
+or
+
+```bash
+yarn add typed.js
+```
+
+CDN (original package version):
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
 ```
 
-#### Setup
+---
 
-This is really all you need to get going.
+## Basic Usage
 
 ```javascript
-// Can also be included with a regular script tag
 import Typed from 'typed.js';
 
 var options = {
   strings: ['<i>First</i> sentence.', '&amp; a second sentence.'],
   typeSpeed: 40,
+  onCharAppended: (char, self) => {
+    // Example: play a sound on each appended character
+    console.log('Appended char:', char);
+  },
+  onCharRemoved: (char, self) => {
+    // Example: log removed characters
+    console.log('Removed char:', char);
+  }
 };
 
 var typed = new Typed('.element', options);
 ```
 
-### Use with ReactJS
+---
 
-Hook-based function component: https://jsfiddle.net/mattboldt/60h9an7y/
+## Changes in this Fork
 
-Class component: https://jsfiddle.net/mattboldt/ovat9jmp/
+1. **`requestAnimationFrame` for Better Performance**:  
+   Instead of relying entirely on `setTimeout`, this fork utilizes `requestAnimationFrame` where possible, improving the performance and smoothness of the typing and backspacing animations.
 
-### Use with Vue.js
+2. **Additional Callbacks**:
+   - `onCharAppended(char, self)`: Invoked immediately after a new character is appended to the element.
+   - `onCharRemoved(char, self)`: Invoked immediately after a character is removed from the element.
 
-Check out the Vue.js component: https://github.com/Orlandster/vue-typed-js
-
-### Use it as WebComponent
-
-Check out the WebComponent: https://github.com/Orlandster/wc-typed-js
-
-## Wonderful sites that have used (or are using) Typed.js
-
-https://github.com/features/package-registry
-
-https://slack.com/
-
-https://envato.com/
-
-https://gorails.com/
-
-https://productmap.co/
-
-https://www.typed.com/
-
-https://apeiron.io
-
-https://git.market/
-
-https://commando.io/
-
-http://testdouble.com/agency.html
-
-https://www.capitalfactory.com/
-
-http://www.maxcdn.com/
-
-https://www.powerauth.com/
+These callbacks give you finer control over the typing animation. For example, you might use them to play a sound on each keystroke or trigger special effects when characters disappear.
 
 ---
 
-### Strings from static HTML (SEO Friendly)
+## Other Features
 
-Rather than using the `strings` array to insert strings, you can place an HTML `div` on the page and read from it.
-This allows bots and search engines, as well as users with JavaScript disabled, to see your text on the page.
+For all other features, usage, and configuration options, refer to the original Typed.js documentation:
 
-```javascript
-<script>
-  var typed = new Typed('#typed', {
-    stringsElement: '#typed-strings'
-  });
-</script>
-```
+- [Original Documentation](http://mattboldt.github.io/typed.js/docs)
 
-```html
-<div id="typed-strings">
-  <p>Typed.js is a <strong>JavaScript</strong> library.</p>
-  <p>It <em>types</em> out sentences.</p>
-</div>
-<span id="typed"></span>
-```
+This fork maintains backward compatibility with most of the original options and callbacks, but introduces more modular code organization and tokenization steps before typing.
 
-### Type Pausing
+---
 
-You can pause in the middle of a string for a given amount of time by including an escape character.
+## Updated Default Options
+
+Below is the updated `defaults` object with JSDoc-style comments for each option, including the newly introduced callbacks:
 
 ```javascript
-var typed = new Typed('.element', {
-  // Waits 1000ms after typing "First"
-  strings: ['First ^1000 sentence.', 'Second sentence.'],
-});
-```
+/**
+ * Defaults & options for Typed.js (Fork)
+ * @typedef {Object} TypedOptions
+ * @property {string[]} strings - Strings to be typed
+ * @property {string|null} stringsElement - ID of element containing string children
+ * @property {number} typeSpeed - Type speed in milliseconds
+ * @property {number} startDelay - Time before typing starts in milliseconds
+ * @property {number} backSpeed - Backspacing speed in milliseconds
+ * @property {boolean} smartBackspace - Only backspace what doesn't match the previous string
+ * @property {boolean} shuffle - Shuffle the strings
+ * @property {number} backDelay - Time before backspacing in milliseconds
+ * @property {boolean} fadeOut - Fade out instead of backspace
+ * @property {string} fadeOutClass - CSS class for fade animation
+ * @property {number} fadeOutDelay - Fade out delay in milliseconds
+ * @property {boolean} loop - Loop strings
+ * @property {number} loopCount - Amount of loops
+ * @property {boolean} showCursor - Show cursor
+ * @property {string} cursorChar - Character for cursor
+ * @property {boolean} autoInsertCss - Insert CSS for cursor and fadeOut into HTML <head>
+ * @property {string|null} attr - Attribute for typing (e.g., 'placeholder')
+ * @property {boolean} bindInputFocusEvents - Bind to focus and blur if el is a text input
+ * @property {('html'|'null')} contentType - 'html' or 'null' for plaintext
+ * @property {function(Typed):void} onBegin - Before it begins typing
+ * @property {function(Typed):void} onComplete - All typing is complete
+ * @property {function(number, Typed):void} preStringTyped - Before each string is typed
+ * @property {function(number, Typed):void} onStringTyped - After each string is typed
+ * @property {function(Typed):void} onLastStringBackspaced - During looping, after last string is typed
+ * @property {function(number, Typed):void} onTypingPaused - Typing has been stopped
+ * @property {function(number, Typed):void} onTypingResumed - Typing has started after being stopped
+ * @property {function(Typed):void} onReset - After reset
+ * @property {function(number, Typed):void} onStop - After stop
+ * @property {function(number, Typed):void} onStart - After start
+ * @property {function(Typed):void} onDestroy - After destroy
+ * @property {function(string, Typed):void} onCharAppended - After a character has been appended
+ * @property {function(string, Typed):void} onCharRemoved - After a character has been removed
+ */
 
-### Smart Backspacing
-
-In the following example, this would only backspace the words after "This is a"
-
-```javascript
-var typed = new Typed('.element', {
-  strings: ['This is a JavaScript library', 'This is an ES6 module'],
-  smartBackspace: true, // Default value
-});
-```
-
-### Bulk Typing
-
-The following example would emulate how a terminal acts when typing a command and seeing its result.
-
-```javascript
-var typed = new Typed('.element', {
-  strings: ['git push --force ^1000\n `pushed to origin with option force`'],
-});
-```
-
-### CSS
-
-CSS animations are built upon initialization in JavaScript. But, you can customize them at your will! These classes are:
-
-```css
-/* Cursor */
-.typed-cursor {
-}
-
-/* If fade out option is set */
-.typed-fade-out {
-}
-```
-
-## Customization
-
-```javascript
-var typed = new Typed('.element', {
-  /**
-   * @property {array} strings strings to be typed
-   * @property {string} stringsElement ID of element containing string children
-   */
+/** @type {TypedOptions} */
+const defaults = {
   strings: [
     'These are the default values...',
     'You know what you should do?',
     'Use your own!',
-    'Have a great day!',
+    'Have a great day!'
   ],
   stringsElement: null,
-
-  /**
-   * @property {number} typeSpeed type speed in milliseconds
-   */
   typeSpeed: 0,
-
-  /**
-   * @property {number} startDelay time before typing starts in milliseconds
-   */
   startDelay: 0,
-
-  /**
-   * @property {number} backSpeed backspacing speed in milliseconds
-   */
   backSpeed: 0,
-
-  /**
-   * @property {boolean} smartBackspace only backspace what doesn't match the previous string
-   */
   smartBackspace: true,
-
-  /**
-   * @property {boolean} shuffle shuffle the strings
-   */
   shuffle: false,
-
-  /**
-   * @property {number} backDelay time before backspacing in milliseconds
-   */
   backDelay: 700,
-
-  /**
-   * @property {boolean} fadeOut Fade out instead of backspace
-   * @property {string} fadeOutClass css class for fade animation
-   * @property {boolean} fadeOutDelay Fade out delay in milliseconds
-   */
   fadeOut: false,
   fadeOutClass: 'typed-fade-out',
   fadeOutDelay: 500,
-
-  /**
-   * @property {boolean} loop loop strings
-   * @property {number} loopCount amount of loops
-   */
   loop: false,
   loopCount: Infinity,
-
-  /**
-   * @property {boolean} showCursor show cursor
-   * @property {string} cursorChar character for cursor
-   * @property {boolean} autoInsertCss insert CSS for cursor and fadeOut into HTML <head>
-   */
   showCursor: true,
   cursorChar: '|',
   autoInsertCss: true,
-
-  /**
-   * @property {string} attr attribute for typing
-   * Ex: input placeholder, value, or just HTML text
-   */
   attr: null,
-
-  /**
-   * @property {boolean} bindInputFocusEvents bind to focus and blur if el is text input
-   */
   bindInputFocusEvents: false,
-
-  /**
-   * @property {string} contentType 'html' or 'null' for plaintext
-   */
   contentType: 'html',
-
-  /**
-   * Before it begins typing
-   * @param {Typed} self
-   */
-  onBegin: (self) => {},
-
-  /**
-   * All typing is complete
-   * @param {Typed} self
-   */
-  onComplete: (self) => {},
-
-  /**
-   * Before each string is typed
-   * @param {number} arrayPos
-   * @param {Typed} self
-   */
-  preStringTyped: (arrayPos, self) => {},
-
-  /**
-   * After each string is typed
-   * @param {number} arrayPos
-   * @param {Typed} self
-   */
-  onStringTyped: (arrayPos, self) => {},
-
-  /**
-   * During looping, after last string is typed
-   * @param {Typed} self
-   */
-  onLastStringBackspaced: (self) => {},
-
-  /**
-   * Typing has been stopped
-   * @param {number} arrayPos
-   * @param {Typed} self
-   */
-  onTypingPaused: (arrayPos, self) => {},
-
-  /**
-   * Typing has been started after being stopped
-   * @param {number} arrayPos
-   * @param {Typed} self
-   */
-  onTypingResumed: (arrayPos, self) => {},
-
-  /**
-   * After reset
-   * @param {Typed} self
-   */
-  onReset: (self) => {},
-
-  /**
-   * After stop
-   * @param {number} arrayPos
-   * @param {Typed} self
-   */
-  onStop: (arrayPos, self) => {},
-
-  /**
-   * After start
-   * @param {number} arrayPos
-   * @param {Typed} self
-   */
-  onStart: (arrayPos, self) => {},
-
-  /**
-   * After destroy
-   * @param {Typed} self
-   */
-  onDestroy: (self) => {},
-
-   /**
-   * UNIQUE TO THIS FORK
-   * After a character has been appended.
-   * @param {*} char The character that has been appended
-   * @param {*} self 
-   */
-  onCharAppended: (char, self) =>  { },
-
-  /**
-   * UNIQUE TO THIS FORK
-   * After a character has been removed.
-   * @param {*} char The character that has been removed
-   * @param {*} self 
-   */
+  onBegin: (self) => { },
+  onComplete: (self) => { },
+  preStringTyped: (arrayPos, self) => { },
+  onStringTyped: (arrayPos, self) => { },
+  onLastStringBackspaced: (self) => { },
+  onTypingPaused: (arrayPos, self) => { },
+  onTypingResumed: (arrayPos, self) => { },
+  onReset: (self) => { },
+  onStop: (arrayPos, self) => { },
+  onStart: (arrayPos, self) => { },
+  onDestroy: (self) => { },
+  onCharAppended: (char, self) => { },
   onCharRemoved: (char, self) => { }
-});
+};
+
+export default defaults;
 ```
+
+---
 
 ## Contributing
 
-### [View Contribution Guidelines](./.github/CONTRIBUTING.md)
+For details on how to contribute, refer to the original [Contribution Guidelines](./.github/CONTRIBUTING.md).
 
-## end
+---
 
-Thanks for checking this out. If you have any questions, I'll be on [Twitter](https://twitter.com/atmattb).
+## License
 
-If you're using this, let me know! I'd love to see it.
+[MIT License](https://github.com/mattboldt/typed.js/blob/master/LICENSE.txt)
 
-It would also be great if you mentioned me or my website somewhere. [www.mattboldt.com](http://www.mattboldt.com)
+---
+
+**If you're using this fork and find it useful, let me know!**  
+
+Happy typing!
