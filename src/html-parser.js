@@ -1,33 +1,16 @@
-/**
- * TODO: These methods can probably be combined somehow
- * Parse HTML tags & HTML Characters
- */
-
-export default class HTMLParser {
+class HTMLParser {
   /**
-   * Type HTML tags & HTML Characters
-   * @param {string} curString Current string
-   * @param {number} curStrPos Position in current string
-   * @param {Typed} self instance of Typed
-   * @returns {number} a new string position
+   * Type HTML chars if contentType is 'html'
    * @private
    */
-
   typeHtmlChars(curString, curStrPos, self) {
     if (self.contentType !== 'html') return curStrPos;
     const curChar = curString.substr(curStrPos).charAt(0);
     if (curChar === '<' || curChar === '&') {
-      let endTag = '';
-      if (curChar === '<') {
-        endTag = '>';
-      } else {
-        endTag = ';';
-      }
+      let endTag = curChar === '<' ? '>' : ';';
       while (curString.substr(curStrPos + 1).charAt(0) !== endTag) {
         curStrPos++;
-        if (curStrPos + 1 > curString.length) {
-          break;
-        }
+        if (curStrPos + 1 > curString.length) break;
       }
       curStrPos++;
     }
@@ -35,28 +18,17 @@ export default class HTMLParser {
   }
 
   /**
-   * Backspace HTML tags and HTML Characters
-   * @param {string} curString Current string
-   * @param {number} curStrPos Position in current string
-   * @param {Typed} self instance of Typed
-   * @returns {number} a new string position
+   * Backspace HTML chars if contentType is 'html'
    * @private
    */
   backSpaceHtmlChars(curString, curStrPos, self) {
     if (self.contentType !== 'html') return curStrPos;
     const curChar = curString.substr(curStrPos).charAt(0);
     if (curChar === '>' || curChar === ';') {
-      let endTag = '';
-      if (curChar === '>') {
-        endTag = '<';
-      } else {
-        endTag = '&';
-      }
-      while (curString.substr(curStrPos - 1).charAt(0) !== endTag) {
+      let startTag = curChar === '>' ? '<' : '&';
+      while (curString.substr(curStrPos - 1).charAt(0) !== startTag) {
         curStrPos--;
-        if (curStrPos < 0) {
-          break;
-        }
+        if (curStrPos < 0) break;
       }
       curStrPos--;
     }
