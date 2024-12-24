@@ -1,139 +1,187 @@
 /**
- * Declaration for typed.js
+ * Declaration for typed.js-extra
  * Typed.js version: v2.0.12
  */
 
 declare module 'typed.js-extra' {
-  interface TypedOptions {
+  export interface TypedOptions {
     /**
-     * strings to be typed
+     * Strings to be typed.
      */
     strings?: string[];
     /**
-     * ID or instance of HTML element of element containing string children
+     * ID or instance of HTML element containing string children.
      */
     stringsElement?: string | Element;
     /**
-     * type speed in milliseconds
+     * Type speed in milliseconds.
      */
     typeSpeed?: number;
     /**
-     * time before typing starts in milliseconds
+     * Time before typing starts in milliseconds.
      */
     startDelay?: number;
     /**
-     * backspacing speed in milliseconds
+     * Backspacing speed in milliseconds.
      */
     backSpeed?: number;
     /**
-     * only backspace what doesn't match the previous string
+     * Only backspace what doesn't match the previous string.
      */
     smartBackspace?: boolean;
     /**
-     * shuffle the strings
+     * Shuffle the strings.
      */
     shuffle?: boolean;
     /**
-     * time before backspacing in milliseconds
+     * Time before backspacing in milliseconds.
      */
     backDelay?: number;
     /**
-     * Fade out instead of backspace
+     * Fade out instead of backspace.
      */
     fadeOut?: boolean;
     /**
-     * css class for fade animation
+     * CSS class for fade animation.
      */
     fadeOutClass?: string;
     /**
-     * Fade out delay in milliseconds
+     * Fade out delay in milliseconds.
      */
     fadeOutDelay?: number;
     /**
-     * loop strings
+     * Loop strings.
      */
     loop?: boolean;
     /**
-     * amount of loops
+     * Amount of loops.
      */
     loopCount?: number;
     /**
-     * show cursor
+     * Show the cursor.
      */
     showCursor?: boolean;
     /**
-     * character for cursor
+     * Character for the cursor.
      */
     cursorChar?: string;
     /**
-     * insert CSS for cursor and fadeOut into HTML
+     * Insert CSS for cursor and fadeOut into the DOM.
      */
     autoInsertCss?: boolean;
     /**
-     * attribute for typing Ex: input placeholder, value, or just HTML text
+     * Attribute for typing (e.g., placeholder, value, etc.)
      */
     attr?: string;
     /**
-     * bind to focus and blur if el is text input
+     * Bind to focus and blur if the element is a text input.
      */
     bindInputFocusEvents?: boolean;
     /**
-     * 'html' or 'null' for plaintext
+     * 'html' or 'null' for plaintext.
      */
     contentType?: string;
+
+    // --------------------------------------
+    // Original Callbacks
+    // --------------------------------------
+
     /**
-     * All typing is complete
+     * All typing is complete.
      */
     onComplete?(self: Typed): void;
+
     /**
-     * Before each string is typed
+     * Before each string is typed.
      */
     preStringTyped?(arrayPos: number, self: Typed): void;
+
     /**
-     * After each string is typed
+     * After each string is typed.
      */
     onStringTyped?(arrayPos: number, self: Typed): void;
+
     /**
-     * During looping, after last string is typed
+     * During looping, after last string is typed.
      */
     onLastStringBackspaced?(self: Typed): void;
+
     /**
-     * Typing has been stopped
+     * Typing has been stopped (paused).
      */
     onTypingPaused?(arrayPos: number, self: Typed): void;
+
     /**
-     * Typing has been started after being stopped
+     * Typing has resumed after being stopped.
      */
     onTypingResumed?(arrayPos: number, self: Typed): void;
+
     /**
-     * After reset
+     * After reset.
      */
     onReset?(self: Typed): void;
+
     /**
-     * After stop
+     * After stop.
      */
     onStop?(arrayPos: number, self: Typed): void;
+
     /**
-     * After start
+     * After start.
      */
     onStart?(arrayPos: number, self: Typed): void;
+
     /**
-     * After destroy
+     * After destroy.
      */
     onDestroy?(self: Typed): void;
 
     /**
+     * Before typing starts.
+     */
+    onBegin?(self: Typed): void;
+
+    // --------------------------------------
+    // New Callbacks in This Fork
+    // --------------------------------------
+
+    /**
      * After a character has been appended.
      */
-    onCharAppended: (char: string, self: Typed) => {};
+    onCharAppended?: (char: string, self: Typed) => void;
+
+    /**
+     * After a character has been removed.
+     */
+    onCharRemoved?: (char: string, self: Typed) => void;
   }
 
   export default class Typed {
     constructor(elementId: string | Element, options: TypedOptions);
+
+    /**
+     * Toggle start/stop.
+     */
     toggle(): void;
+
+    /**
+     * Stop typing/backspacing.
+     */
     stop(): void;
+
+    /**
+     * Resume typing/backspacing.
+     */
     start(): void;
+
+    /**
+     * Destroy the instance.
+     */
     destroy(): void;
+
+    /**
+     * Reset and optionally restart the typing.
+     */
     reset(restart?: boolean): void;
   }
 }
