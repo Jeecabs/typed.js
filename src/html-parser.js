@@ -1,14 +1,20 @@
+/**
+ * HTMLParser helps handle HTML tags or entities when contentType = 'html'
+ */
 class HTMLParser {
   /**
-   * Type HTML chars if contentType is 'html'
-   * @private
+   * Move forward in `curString` to skip through an HTML tag or entity (e.g. <span> or &amp;).
+   * @param {string} curString
+   * @param {number} curStrPos
+   * @param {Typed} self
+   * @returns {number}
    */
   typeHtmlChars(curString, curStrPos, self) {
     if (self.contentType !== 'html') return curStrPos;
-    const curChar = curString.substr(curStrPos).charAt(0);
+    const curChar = curString.charAt(curStrPos);
     if (curChar === '<' || curChar === '&') {
       let endTag = curChar === '<' ? '>' : ';';
-      while (curString.substr(curStrPos + 1).charAt(0) !== endTag) {
+      while (curString.charAt(curStrPos + 1) !== endTag) {
         curStrPos++;
         if (curStrPos + 1 > curString.length) break;
       }
@@ -18,15 +24,18 @@ class HTMLParser {
   }
 
   /**
-   * Backspace HTML chars if contentType is 'html'
-   * @private
+   * Move backward in `curString` to skip through an HTML tag or entity if backspacing
+   * @param {string} curString
+   * @param {number} curStrPos
+   * @param {Typed} self
+   * @returns {number}
    */
   backSpaceHtmlChars(curString, curStrPos, self) {
     if (self.contentType !== 'html') return curStrPos;
-    const curChar = curString.substr(curStrPos).charAt(0);
+    const curChar = curString.charAt(curStrPos);
     if (curChar === '>' || curChar === ';') {
       let startTag = curChar === '>' ? '<' : '&';
-      while (curString.substr(curStrPos - 1).charAt(0) !== startTag) {
+      while (curString.charAt(curStrPos - 1) !== startTag) {
         curStrPos--;
         if (curStrPos < 0) break;
       }
@@ -36,4 +45,4 @@ class HTMLParser {
   }
 }
 
-export let htmlParser = new HTMLParser();
+export const htmlParser = new HTMLParser();
